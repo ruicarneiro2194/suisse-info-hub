@@ -10,29 +10,22 @@
     <script>
         // Lien de partage de votre fichier Google Drive
         const lienDrive = "https://drive.google.com/file/d/1NRQ-CvXq_egfWXnMop_6u2pZjddHwBuA/view?usp=sharing";
-        
-        function extraireId(url) {
-            const regExp = /\/d\/([^/]+)/;
-            const match = url.match(regExp);
-            return match ? match[1] : null;
-        }
+    // Cette ligne magique récupère l'identifiant de votre fichier automatiquement
+        const fileId = lienDrive.split('/d/')[1].split('/')[0];
 
-        const fileId = extraireId(lienDrive);
+        // L'adresse officielle pour lire le fichier en direct
+        const urlDirecte = `https://google.com{fileId}`;
 
-        if (fileId) {
-            const urlDirecte = `https://google.com{fileId}`;
-            fetch(urlDirecte)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('contenu-article').innerHTML = data;
-                })
-                .catch(error => {
-                    document.getElementById('contenu-article').innerHTML = "Erreur de chargement de l'article.";
-                    console.error(error);
-                });
-        } else {
-            document.getElementById('contenu-article').innerHTML = "Lien Google Drive invalide.";
-        }
+        fetch(urlDirecte)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('contenu-article').innerHTML = data;
+            })
+            .catch(error => {
+                document.getElementById('contenu-article').innerHTML = "Erreur de chargement de l'article.";
+                console.error(error);
+            });
     </script>
 </body>
-</html>
+</html>        
+       
