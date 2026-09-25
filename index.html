@@ -8,19 +8,35 @@
     <div id="contenu-article">Chargement de l'article automatique...</div>
 
     <script>
-        // Le site va chercher le fichier article.html déposé automatiquement par Make
-        fetch('2.html')
-            .then(response => {
-                if (!response.ok) throw new Error('Fichier introuvable');
-                return response.text();
-            })
-            .then(data => {
-                document.getElementById('contenu-article').innerHTML = data;
-            })
-            .catch(error => {
-                document.getElementById('contenu-article').innerHTML = "L'article est en cours de préparation par l'IA...";
-                console.error(error);
-            });
+        // Fonction pour tester quel est le dernier fichier disponible
+        function chargerDernierArticle(numero) {
+            fetch(`${numero}.html`)
+                .then(response => {
+                    if (response.ok) {
+                        // Si le fichier existe (ex: 3.html), on tente de chercher le suivant (4.html)
+                        return response.text().then(data => {
+                            document.getElementById('contenu-article').innerHTML = data;
+                            chargerDernierArticle(numero + 1);
+                        });
+                    } else if (numero > 2) {
+                        // Si le fichier n'existe pas, on s'arrête au dernier trouvé
+                        return;
+                    } else {
+                        // Sécurité si même le fichier 2.html n'est pas encore lu
+                        fetch('2.html')
+                            .then(res => res.text())
+                            .then(data => document.getElementById('contenu-article').innerHTML = data);
+                    }
+                })
+                .catch(() => {
+                    if (numero === 2) {
+                        document.getElementById('contenu-article').innerHTML = "L'article est en cours de préparation par l'IA...";
+                    }
+                });
+        }
+
+        // On commence la recherche à partir du fichier 2.html
+        chargerDernierArticle(2);
     </script>
 </body>
 </html>
