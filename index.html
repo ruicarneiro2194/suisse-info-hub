@@ -1,1 +1,38 @@
-<h1>Mon Site Automatisé</h1>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Site Automatisé</title>
+</head>
+<body>
+    <div id="contenu-article">Chargement de l'article en cours...</div>
+
+    <script>
+        // Lien de partage de votre fichier Google Drive
+        const lienDrive = "https://drive.google.com/file/d/1NRQ-CvXq_egfWXnMop_6u2pZjddHwBuA/view?usp=sharing";
+        
+        function extraireId(url) {
+            const regExp = /\/d\/([^/]+)/;
+            const match = url.match(regExp);
+            return match ? match[1] : null;
+        }
+
+        const fileId = extraireId(lienDrive);
+
+        if (fileId) {
+            const urlDirecte = `https://google.com{fileId}`;
+            fetch(urlDirecte)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('contenu-article').innerHTML = data;
+                })
+                .catch(error => {
+                    document.getElementById('contenu-article').innerHTML = "Erreur de chargement de l'article.";
+                    console.error(error);
+                });
+        } else {
+            document.getElementById('contenu-article').innerHTML = "Lien Google Drive invalide.";
+        }
+    </script>
+</body>
+</html>
