@@ -2,25 +2,23 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Site Automatisé</title>
+    <title>Suisse Info Hub</title>
 </head>
 <body>
-    <div id="contenu-article">Chargement de l'article en cours...</div>
+    <div id="contenu-article">Chargement de l'article automatique...</div>
 
     <script>
-        // Identifiant unique et direct de votre fichier Google Drive
-        const fileId = "1NRQ_CvXq_egfWxNMoJmY7vUonIqVofxH";
-
-        // Adresse de lecture directe officielle de Google
-        const urlDirecte = `https://google.com{fileId}`;
-
-        fetch(urlDirecte)
-            .then(response => response.text())
+        // Le site va chercher le fichier article.html déposé automatiquement par Make
+        fetch('article.html')
+            .then(response => {
+                if (!response.ok) throw new Error('Fichier introuvable');
+                return response.text();
+            })
             .then(data => {
                 document.getElementById('contenu-article').innerHTML = data;
             })
             .catch(error => {
-                document.getElementById('contenu-article').innerHTML = "Erreur de chargement de l'article.";
+                document.getElementById('contenu-article').innerHTML = "L'article est en cours de préparation par l'IA...";
                 console.error(error);
             });
     </script>
