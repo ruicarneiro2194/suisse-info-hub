@@ -8,12 +8,10 @@
     <div id="contenu-article">Chargement de l'article en cours...</div>
 
     <script>
-        // Lien de partage de votre fichier Google Drive
-        const lienDrive = "https://drive.google.com/file/d/1NRQ-CvXq_egfWXnMop_6u2pZjddHwBuA/view?usp=sharing";
-    // Cette ligne magique récupère l'identifiant de votre fichier automatiquement
-        const fileId = lienDrive.split('/d/')[1].split('/')[0];
+        // Identifiant unique et direct de votre fichier Google Drive
+        const fileId = "1NRQ_CvXq_egfWxNMoJmY7vUonIqVofxH";
 
-        // L'adresse officielle pour lire le fichier en direct
+        // Adresse de lecture directe officielle de Google
         const urlDirecte = `https://google.com{fileId}`;
 
         fetch(urlDirecte)
@@ -27,5 +25,4 @@
             });
     </script>
 </body>
-</html>        
-       
+</html>
