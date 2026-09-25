@@ -115,6 +115,7 @@
 
         .tab-content {
             display: none;
+            white-space: pre-wrap;
         }
 
         .tab-content.active {
@@ -129,26 +130,6 @@
             letter-spacing: -0.5px;
         }
 
-        .tab-content h1 {
-            font-size: 2.2rem;
-            line-height: 1.3;
-            border-left: 4px solid var(--primary-color);
-            padding-left: 1rem;
-        }
-
-        .tab-content h2 {
-            font-size: 1.6rem;
-            border-bottom: 2px solid #f1f3f5;
-            padding-bottom: 0.5rem;
-        }
-
-        .tab-content p {
-            font-size: 1.1rem;
-            color: #495057;
-            margin-bottom: 1.5rem;
-            text-align: justify;
-        }
-
         .loading-text {
             text-align: center;
             color: var(--text-muted);
@@ -161,11 +142,6 @@
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(46, 125, 50, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
         }
-
-        @media (max-width: 600px) {
-            .article-card { padding: 1.5rem; }
-            .tab-content h1 { font-size: 1.7rem; }
-        }
     </style>
 </head>
 <body>
@@ -175,24 +151,30 @@
             <a href="#" class="logo">🇨🇭 Suisse Info Hub</a>
             <div class="status-badge">
                 <div class="status-dot"></div>
-                IA Synchro 15m
+                IA Multi-Langues
             </div>
         </div>
     </header>
 
     <main>
+        <!-- Les boutons d'onglets pour chaque langue -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('fr')">🇫🇷 Français</button>
             <button class="tab-btn" onclick="switchTab('de')">🇩🇪 Deutsch</button>
+            <button class="tab-btn" onclick="switchTab('it')">🇮🇹 Italiano</button>
         </div>
 
         <div class="article-card">
             <div id="lang-fr" class="tab-content active">
-                <div class="loading-text">Mise en page de l'actualité en cours...</div>
+                <div class="loading-text">Mise en page du texte français...</div>
             </div>
             
             <div id="lang-de" class="tab-content">
-                <div class="loading-text">Wird geladen...</div>
+                <div class="loading-text">Deutsch wird geladen...</div>
+            </div>
+
+            <div id="lang-it" class="tab-content">
+                <div class="loading-text">Italiano in caricamento...</div>
             </div>
         </div>
     </main>
@@ -202,29 +184,51 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            if(lang === 'fr') {
-                document.querySelector('button[onclick="switchTab(\'fr\')"]').classList.add('active');
-                document.getElementById('lang-fr').classList.add('active');
-            } else {
-                document.querySelector('button[onclick="switchTab(\'de\')"]').classList.add('active');
-                document.getElementById('lang-de').classList.add('active');
-            }
+            document.querySelector(`button[onclick="switchTab('${lang}')"]`).classList.add('active');
+            document.getElementById(`lang-${lang}`).classList.add('active');
         }
 
-        function extraireEtAfficher(htmlContent) {
-            // Découpage ultra-flexible basé sur le mot "Deutsch" sous toutes ses formes
-            let indexDeutsch = htmlContent.search(/Deutsch\s*[-–—:]/i);
-            
-            if (indexDeutsch !== -1) {
-                let texteFr = htmlContent.substring(0, indexDeutsch).trim();
-                let texteDe = htmlContent.substring(indexDeutsch).trim();
-                
-                document.getElementById('lang-fr').innerHTML = texteFr;
-                document.getElementById('lang-de').innerHTML = texteDe;
+        function découperTexteMultiLangues(texteBrut) {
+            // Détection des positions de chaque langue dans le texte global de ChatGPT
+            let posFr = 0;
+            let posDe = texteBrut.search(/2\.\s*En\s*Allemand|Deutsch/i);
+            let posIt = texteBrut.search(/3\.\s*En\s*Italien|Italiano/i);
+            let posAutres = texteBrut.search(/4\.\s*En\s*Romanche|5\.\s*En\s*Suisse/i);
+
+            let texteFrancel = "";
+            let texteAllemand = "";
+            let texteItalien = "";
+
+            // Extraction du Français
+            if (posDe !== -1) {
+                texteFrancel = texteBrut.substring(posFr, posDe).trim();
             } else {
-                document.getElementById('lang-fr').innerHTML = htmlContent;
-                document.getElementById('lang-de').innerHTML = "<div class='loading-text'>Traduction allemande en cours de génération...</div>";
+                texteFrancel = texteBrut;
             }
+
+            // Extraction de l'Allemand
+            if (posDe !== -1) {
+                let finDe = (posIt !== -1) ? posIt : ((posAutres !== -1) ? posAutres : texteBrut.length);
+                texteAllemand = texteBrut.substring(posDe, finDe).trim();
+            } else {
+                texteAllemand = "Traduction allemande indisponible pour cet article.";
+            }
+
+            // Extraction de l'Italien
+            if (posIt !== -1) {
+                let finIt = (posAutres !== -1) ? posAutres : texteBrut.length;
+                texteItalien = texteBrut.substring(posIt, finIt).trim();
+            } else {
+                texteItalien = "Traduction italienne indisponible pour cet article.";
+            }
+
+            // Nettoyage cosmétique des résidus de titres de sections
+            texteFrancel = texteFrancel.replace(/1\.\s*En\s*Français\s*de\s*Suisse\s*.*?:?/i, '').trim();
+            
+            // Affichage dans les onglets respectifs
+            document.getElementById('lang-fr').innerHTML = texteFrancel;
+            document.getElementById('lang-de').innerHTML = texteAllemand;
+            document.getElementById('lang-it').innerHTML = texteItalien;
         }
 
         function chargerDernierArticle(numero) {
@@ -232,25 +236,29 @@
                 .then(response => {
                     if (response.ok) {
                         return response.text().then(data => {
-                            extraireEtAfficher(data);
+                            découperTexteMultiLangues(data);
                             chargerDernierArticle(numero + 1);
                         });
                     } else if (numero > 2) {
                         return;
                     } else {
-                        fetch('2.html')
+                        // Sécurité de lecture sur le fichier 100.html
+                        fetch('100.html')
                             .then(res => res.text())
-                            .then(data => extraireEtAfficher(data));
+                            .then(data => découperTexteMultiLangues(data));
                     }
                 })
                 .catch(() => {
                     if (numero === 2) {
-                        document.getElementById('lang-fr').innerHTML = "<div class='loading-text'>L'article est en cours de préparation...</div>";
+                        document.getElementById('lang-fr').innerHTML = "<div class='loading-text'>L'article est en préparation...</div>";
                     }
                 });
         }
-        chargerDernierArticle(2);
+        // Lance la recherche à partir du fichier 100.html directement pour votre test actuel
+        chargerDernierArticle(100);
     </script>
 </body>
 </html>
+
+
 
