@@ -75,7 +75,6 @@
             padding: 0 1.5rem;
         }
 
-        /* Système d'onglets */
         .tabs {
             display: flex;
             gap: 0.5rem;
@@ -122,7 +121,6 @@
             display: block;
         }
 
-        /* Style du texte IA */
         .tab-content h1, .tab-content h2, .tab-content h3 {
             color: var(--text-color);
             font-weight: 700;
@@ -183,19 +181,16 @@
     </header>
 
     <main>
-        <!-- Les boutons d'onglets -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('fr')">🇫🇷 Français</button>
             <button class="tab-btn" onclick="switchTab('de')">🇩🇪 Deutsch</button>
         </div>
 
         <div class="article-card">
-            <!-- Contenu Français -->
             <div id="lang-fr" class="tab-content active">
                 <div class="loading-text">Mise en page de l'actualité en cours...</div>
             </div>
             
-            <!-- Contenu Allemand -->
             <div id="lang-de" class="tab-content">
                 <div class="loading-text">Wird geladen...</div>
             </div>
@@ -203,7 +198,6 @@
     </main>
 
     <script>
-        // Fonction pour changer d'onglet au clic
         function switchTab(lang) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -217,26 +211,28 @@
             }
         }
 
-        // Chargement automatique et découpage automatique du texte de ChatGPT
+        function extraireEtAfficher(htmlContent) {
+            // Découpage ultra-flexible basé sur le mot "Deutsch" sous toutes ses formes
+            let indexDeutsch = htmlContent.search(/Deutsch\s*[-–—:]/i);
+            
+            if (indexDeutsch !== -1) {
+                let texteFr = htmlContent.substring(0, indexDeutsch).trim();
+                let texteDe = htmlContent.substring(indexDeutsch).trim();
+                
+                document.getElementById('lang-fr').innerHTML = texteFr;
+                document.getElementById('lang-de').innerHTML = texteDe;
+            } else {
+                document.getElementById('lang-fr').innerHTML = htmlContent;
+                document.getElementById('lang-de').innerHTML = "<div class='loading-text'>Traduction allemande en cours de génération...</div>";
+            }
+        }
+
         function chargerDernierArticle(numero) {
             fetch(`${numero}.html`)
                 .then(response => {
                     if (response.ok) {
                         return response.text().then(data => {
-                            
-                            // Séparation automatique au mot magique "Deutsch"
-                            let parties = data.split(/Deutsch\s*-\s*/i);
-                            
-                            if (parties.length > 1) {
-                                document.getElementById('lang-fr').innerHTML = parties[0];
-                                // On rajoute un titre propre pour la partie allemande
-                                document.getElementById('lang-de').innerHTML = "<h1>Deutsch</h1>" + parties[1];
-                            } else {
-                                // Si pas d'allemand trouvé, on met tout en français
-                                document.getElementById('lang-fr').innerHTML = data;
-                                document.getElementById('lang-de').innerHTML = "<div class='loading-text'>Traduction allemande non disponible pour cet article.</div>";
-                            }
-                            
+                            extraireEtAfficher(data);
                             chargerDernierArticle(numero + 1);
                         });
                     } else if (numero > 2) {
@@ -244,15 +240,7 @@
                     } else {
                         fetch('2.html')
                             .then(res => res.text())
-                            .then(data => {
-                                let parties = data.split(/Deutsch\s*-\s*/i);
-                                if (parties.length > 1) {
-                                    document.getElementById('lang-fr').innerHTML = parties[0];
-                                    document.getElementById('lang-de').innerHTML = "<h1>Deutsch</h1>" + parties[1];
-                                } else {
-                                    document.getElementById('lang-fr').innerHTML = data;
-                                }
-                            });
+                            .then(data => extraireEtAfficher(data));
                     }
                 })
                 .catch(() => {
